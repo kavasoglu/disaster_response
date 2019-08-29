@@ -21,6 +21,7 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
+import pickle
 
 def load_data(database_filepath):
     database_path = "sqlite:///" + database_filepath
@@ -29,6 +30,8 @@ def load_data(database_filepath):
     df = pd.read_sql('select * from DisasterMessages', con)
     X = df['message']
     Y = df.drop(['message','original','genre'],axis=1)
+    categories = Y.columns
+    return X,Y,categories
 
 
 def tokenize(text):
@@ -43,15 +46,23 @@ def tokenize(text):
 
 
 def build_model():
-    pass
+    return Pipeline([
+        ('tfidfvect', TfidfVectorizer(tokenizer=tokenize)),
+        ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators=30, random_state=0)))
+    ])
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    y_preds = model.predict(X_test)
+
+    for index, category_name in enumerate(category_names):
+        print(index,'-',category_name,':')
+        preds = [pred[index] for pred in y_preds]
+        print(classification_report(Y_test[category_name], preds))
 
 
 def save_model(model, model_filepath):
-    pass
+    pickle.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
@@ -59,7 +70,7 @@ def main():
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
         X, Y, category_names = load_data(database_filepath)
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=0)
 
         print('Building model...')
         model = build_model()
