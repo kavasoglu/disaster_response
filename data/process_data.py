@@ -5,6 +5,16 @@ import numpy as np
 
 from sqlalchemy import create_engine
 
+
+'''Loads and merges the messages and categories data from csv files.
+
+Args:
+    messages_filepath: string, csv file path for the messages
+    categories_filepath: string, csv file path for the categories
+
+Returns:
+    df: DataFrame, merged dataframe of the messages and categories datasets
+'''
 def load_data(messages_filepath, categories_filepath):
     index_col_name = 'id'
     messages = pd.read_csv(messages_filepath, index_col=index_col_name)
@@ -12,6 +22,15 @@ def load_data(messages_filepath, categories_filepath):
     df = pd.merge(messages, categories, on=index_col_name)
     return df
 
+
+'''Preprocesses dataframe to extract categories into separate columns.
+
+Args:
+    df: DataFrame, dataframe to be preprocessed
+
+Returns:
+    df: DataFrame, preprocessed dataframe
+'''
 def clean_data(df):
     # column names are embedded into column values eg. 'related-1;request-0'
     # extract column names from values
@@ -37,12 +56,26 @@ def clean_data(df):
     return df
 
 
+'''Saves dataset into a given database.
+
+Args:
+    df: DataFrame, dataset to be saved into the database
+    database_filename: string, database path to be saved
+'''
 def save_data(df, database_filename):
     db_path = 'sqlite:///' + database_filename
     engine = create_engine(db_path)
     df.to_sql('DisasterMessages', engine, index=False)
 
 
+'''Processes messages & categories datasets and saves into a database. Sample usage:
+python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db
+
+Args:
+    messages_filepath: string, csv file path for the messages dataset
+    categories_filepath: string, csv file path for the categories dataset
+    database_filepath: string, database path for the processed data to be saved
+'''
 def main():
     if len(sys.argv) == 4:
 

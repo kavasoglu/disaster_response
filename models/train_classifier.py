@@ -23,6 +23,17 @@ from sklearn.metrics import classification_report
 
 import pickle
 
+
+'''Loads data from a given database.
+
+Args:
+    database_filepath: string, the database path for the data to be loaded
+
+Returns:
+    X: DataFrame, features dataset
+    Y: DataFrame, target dataset
+    categories: Index, target class names
+'''
 def load_data(database_filepath):
     database_path = "sqlite:///" + database_filepath
     engine = create_engine(database_path)
@@ -34,6 +45,14 @@ def load_data(database_filepath):
     return X,Y,categories
 
 
+'''Tokenizes given text into words by removing stop words.
+
+Args:
+    text: string, text to be tokenized
+
+Returns:
+    tokens: list of strings, words after stop words removal and lemmatizer
+'''
 def tokenize(text):
     text = re.sub(r"[^a-zA-Z0-9]"," ", text.lower())
     words = word_tokenize(text)
@@ -45,6 +64,11 @@ def tokenize(text):
     return tokens
 
 
+'''Builds multi output classifier pipeline.
+
+Returns:
+    pipeline: Pipeline, multi output classifier pipeline
+'''
 def build_model():
     return Pipeline([
         ('tfidfvect', TfidfVectorizer(tokenizer=tokenize)),
@@ -52,6 +76,14 @@ def build_model():
     ])
 
 
+'''Evaluates model with the test dataset and prints out the evaluation results.
+
+Args:
+    model: Pipeline, machine learning model
+    X_test: DataFrame, features test dataset
+    Y_test: DataFrame, target test dataset
+    category_names: Index, target class names
+'''
 def evaluate_model(model, X_test, Y_test, category_names):
     y_preds = model.predict(X_test)
 
@@ -61,10 +93,23 @@ def evaluate_model(model, X_test, Y_test, category_names):
         print(classification_report(Y_test[category_name], preds))
 
 
+'''Saves model to a given file path.
+
+Args:
+    model: Pipeline, sachine learning model
+    model_filepath: string, destination file path for the model to be saved
+'''
 def save_model(model, model_filepath):
     pickle.dump(model, open(model_filepath, 'wb'))
 
 
+'''Main program of the ML pipeline. Sample usage:
+python models/train_classifier.py data/DisasterResponse.db models/multi_classifier.pkl
+
+Args:
+    database_filepath: string, the database path for the data to be loaded
+    model_filepath: string, destination file path for the model to be saved
+'''
 def main():
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
