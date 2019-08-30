@@ -45,6 +45,9 @@ def index():
 
     related_messages = df.related.value_counts().tolist()
 
+    top_category_count = df.iloc[:,4:].sum().sort_values(ascending=False)[1:6]
+    top_category_names = list(top_category_count.index)
+
     # create visuals
     graphs = [
         {
@@ -83,6 +86,24 @@ def index():
                 }
             }
 
+        },
+        {
+            'data': [
+                Bar(
+                    x=top_category_names,
+                    y=top_category_count
+                )
+            ],
+
+            'layout': {
+                'title': 'Top 5 Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Categories"
+                }
+            }
         }
     ]
 
