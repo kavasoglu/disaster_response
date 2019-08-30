@@ -70,10 +70,20 @@ Returns:
     pipeline: Pipeline, multi output classifier pipeline
 '''
 def build_model():
-    return Pipeline([
+    pipeline = Pipeline([
         ('tfidfvect', TfidfVectorizer(tokenizer=tokenize)),
-        ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators=30, random_state=0)))
+        ('clf', MultiOutputClassifier(RandomForestClassifier(random_state=0)))
     ])
+
+    parameters = {
+        'clf__estimator__n_estimators': [10, 20, 30],
+        'clf__estimator__warm_start': [True, False]
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters)
+    cv.fit(X_train, y_train)
+
+    return cv.best_estimator_
 
 
 '''Evaluates model with the test dataset and prints out the evaluation results.
